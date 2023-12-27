@@ -1,0 +1,118 @@
+services:
+
+  proxy:
+    build:
+     context: ./proxy
+     dockerfile: Dockerfile.proxy
+    image: proxy
+    container_name: proxy
+    ports:
+     - "8080:80"
+    depends_on:
+     - wordpress
+    networks:
+     - asa-network
+
+  dns:
+    build:
+     context: ./dns
+     dockerfile: Dockerfile
+    image: bind9
+    container_name: bind9
+    ports:
+     - "53:53/udp"
+     - "53:53/tcp"
+    networks: 
+      - asa-network
+
+
+
+  db:
+    # We use a mariadb image which supports both amd64 & arm64 architecture
+    image: mariadb:10.6.4-focal
+    # If you really want to use MySQL, uncomment the following line
+    #image: mysql:8.0.27
+    command: '--default-authentication-plugin=mysql_native_password'
+    volumes:
+      - db_data:/var/lib/mysql
+    restart: always
+    environment:
+      - MYSQL_ROOT_PASSWORD=somewordpress
+      - MYSQL_DATABASE=wordpress
+      - MYSQL_USER=wordpress
+      - MYSQL_PASSWORD=wordpress
+    expose:
+      - 3306
+      - 33060
+    networks:
+     - asa-network
+
+  wordpress:
+    image: wordpress:latest
+    restart: always
+    environment:
+      - WORDPRESS_DB_HOST=db
+      - WORDPRESS_DB_USER=wordpress
+      - WORDPRESS_DB_PASSWORD=wordpress
+      - WORDPRESS_DB_NAME=wordpress
+    volumes:
+      - wordpress:/var/www/html
+    networks:
+     - asa-network
+
+  email: 
+    build:                               
+      context: ./conf-email                
+      dockerfile: Dockerfile              
+    image: email                                    
+    container_name: email                  
+    hostname: mail.asa.br
+    restart: always                      
+    tty: true                             
+    volumes:
+      - ./conf-email/rainloop:/var/www/html/rainloop
+    ports:                               
+     - "25:25/tcp"                                             
+     - "100:100/tcp"
+     - "143:143/tcp"
+     - "587:587/tcp"
+     - "993:993/tcp"
+     - "995:995/tcp"
+    networks:                             
+     - asa-network
+
+  ssh-server:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    image: ubuntu-ssh
+    container_name: s1
+    #command: /usr/sbin/sshd -D
+    networks:
+      - asa-network
+    ports:
+      - "21:22"
+  
+  s2:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ubuntu-ssh
+    container_name: s2
+    #command: /usr/sbin/sshd -D
+    networks:
+      - asa-network
+    ports:
+      - "2022:22"
+
+
+networks:
+ asa-network:
+  driver: bridge
+
+volumes:
+  db_data:
+  wordpress:
+
+  
+    

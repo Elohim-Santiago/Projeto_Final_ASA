@@ -1,0 +1,9 @@
+FROM ubuntu:latest
+
+RUN apt update \
+    && apt upgrade -y \
+    && apt install -y openssh-server openssh-client \
+    && useradd -m -s /bin/bash redes \
+    && echo 'redes:redes0123' | chpasswd
+
+CMD ["service", "ssh", "start", "-D"]
