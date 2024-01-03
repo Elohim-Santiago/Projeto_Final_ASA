@@ -88,44 +88,18 @@ services:
       - asa-network
 
 
-  ssh1:
+  ssh:
     build:
       context: ./servidor_ssh
       dockerfile: Dockerfile.dockerfile
     image: ubuntu-ssh
-    container_name: s1
+    container_name: ssh
     ports:
-      - "21:22"
+      - "22:22"
     networks:
       - asa-network
-
-  ssh2:
-    build:
-      context: ./servidor_ssh
-      dockerfile: Dockerfile.dockerfile
-    image: ubuntu-ssh
-    container_name: s2
-    ports:
-      - "2022:22"
-    networks:
-      - asa-network
-  
-  ssh3:
-    build:
-      context: ./servidor_ssh
-      dockerfile: Dockerfile.dockerfile
-    image: ubuntu-ssh
-    container_name: s3
-    ports:
-      - "2222:22"
-    networks:
-      - asa-network
-
 
 networks:
  asa-network:
   driver: bridge
 
-volumes:
-  db_data:
- 
